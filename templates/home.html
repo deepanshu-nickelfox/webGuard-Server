@@ -1,0 +1,682 @@
+{% extends 'base_no_container.html' %}
+{% load static %}
+<!--
+Copyright 2017 MakeMyTrip (Kunal Aggarwal, Avinash Jain)
+
+This file is part of WebGuard.
+
+WebGuard is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+WebGuard is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with WebGuard.  If not, see <http://www.gnu.org/licenses/>.
+-->
+{% block css %}
+<style>
+	.dropdown-content .disabled {
+		cursor: default;
+	}
+	.dropdown-disabled {
+	    padding-top: 15px;
+	    font-size: 13pt;
+	    color: #999;
+	}
+	.refresh-button {
+		cursor: pointer;
+	}
+	.faq-question {
+		font-weight: 400;
+	}
+	.faq-answer a {
+		color: #039be5;
+		display: inline;
+		font-size: 17.33px;
+		font-weight: 300;
+		height: auto;
+		line-height: 26px;
+		padding: 0;
+	}
+	.faq-answer a:hover {
+		text-decoration: underline;
+		background-color: white;
+	}
+</style>
+{% endblock %}
+
+{% block nav %}
+
+{% if instances %}
+<ul id="dropdown1" class="dropdown-content">
+	<li class="disabled"><div class="dropdown-disabled center-align">Select a ZAP Instance ({{ zap_instances|length }}/{{ ZAP_MULTIPLE_MAX_COUNT }})<div></li>
+	<li class="divider"></li>
+	{% for i in zap_instances %}
+	<li>
+		<a href='{% url "web:home" zap_index=forloop.counter0 %}'>
+			{{ i.ip }}:{{ i.port }} [{{ i.name }}]
+		</a>
+	</li>
+	{% endfor %}
+</ul>
+<ul id="slide-out-utilities" class="side-nav">
+	<div class="row">
+		<div class="col s12">
+			<p class="flow-text center-align" style="font-size: 20pt;margin-bottom:0">I'm stuck.. What do I do next?</p>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col s12">
+			<p class="flow-text" style="font-size: 13pt; margin:0 15px; text-align: justify;">
+				Hello {{ username|upper }}, good to see you've made it this far. This is the guide section for ZAP. Please read through the information below. 
+			</p>
+			<p class="flow-text" style="font-size: 13pt; margin:0 15px; margin-top:10px; text-align: justify;">
+				Now that you have a ZAP Instance started please set the following as a proxy for both HTTP and HTTPS in your browser:
+			</p>
+			<p class="flow-text" style="font-size: 13pt; margin:0 15px; margin-top:10px; margin-left:25px; text-align: justify;">
+			<pre>
+    Host: {{ instances.ip }}
+    Port: {{ instances.port }}
+			</pre>
+			</p>
+			<p class="flow-text" style="font-size: 13pt; margin:0 15px; margin-top:-15px; text-align: justify;">
+				If your application runs over HTTPS, then you need to install ZAP's SSL Certificate in your browser. You can obtain the SSL Certificate by clicking the button below:<br>
+				<a href="http://{{ instances.ip }}:{{ instances.port }}/OTHER/core/other/rootcert/" class="waves-effect waves-light btn blue">SSL Certificate</a>
+			</p>
+			<p class="flow-text" style="font-size: 13pt; margin:0 15px; margin-top:25px; text-align: justify;">
+				Once you're done with your work. It is always advisable to stop the ZAP Instance by clicking the button below:<br>
+				<a data-port="{{ instances.port }}" data-ip="{{ instances.ip }}" class="zap_stop waves-effect waves-light mmt-red btn">Stop ZAP</a>
+			</p>
+		</div>
+	</div>
+</ul>
+{% endif %}
+<ul id="slide-out-help" class="side-nav">
+	<div class="row">
+		<div class="col s12">
+			<p class="flow-text center-align" style="font-size: 20pt;margin-bottom:0">Wait.. I have some questions!</p>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col s12">
+			<p class="flow-text" style="font-size: 13pt; margin:0 15px; text-align: justify;">
+				Worry not fellow human, we've got you covered. This is the help section, here you'll find answers to some Frequently Asked Questions (FAQs). Please read below:
+			</p>
+			<div style="margin-top:15px;">
+				<p class="flow-text faq-question" style="font-size: 13pt; margin:0 15px; text-align: justify;">Q: What does WebGuard do?</p>
+				<p class="flow-text faq-answer" style="font-size: 13pt; margin:0 15px; text-align: justify;">A: WebGuard is designed to look for several security related Web Application vulnerabilities using ZAP API. It help developers/QA find potential security vulnerabilities in web applications and provide an interactive interface to begin the scanning.</p>
+			</div>
+			<div style="margin-top:15px;">
+				<p class="flow-text faq-question" style="font-size: 13pt; margin:0 15px; text-align: justify;">Q: What is the next step after starting ZAP?</p>
+				<p class="flow-text faq-answer" style="font-size: 13pt; margin:0 15px; text-align: justify;">A: After staring ZAP, you need to enter proxy IP and Port in your internet settings and then you can begin your QA testing to capture all testing links in WebGuard. For help on how to set a proxy in your browser, please refer <a href="http://www.digitalcitizen.life/how-set-proxy-server-all-major-internet-browsers-windows" target="_blank">this link</a></p>
+			</div>
+			<div style="margin-top:15px;">
+				<p class="flow-text faq-question" style="font-size: 13pt; margin:0 15px; text-align: justify;">Q: How do I test only a single URL?</p>
+				<p class="flow-text faq-answer" style="font-size: 13pt; margin:0 15px; text-align: justify;">A: For scanning only a single URL, there is a separare section named "Single URL Scan". You just have to enter the URL that you want to test and hit "Scan URL".</p>
+			</div>
+			<div style="margin-top:15px;">
+				<p class="flow-text faq-question" style="font-size: 13pt; margin:0 15px; text-align: justify;">Q: Can I start more than one ZAP instance?</p>
+				{% if ZAP_MULTIPLE_ALLOWED %}
+				<p class="flow-text faq-answer" style="font-size: 13pt; margin:0 15px; text-align: justify;">A: Yes, you can start multiple scanning instance so that you can test various application/project together. In the upermost section, user can switch among different instances by just selecting the scanning instance and the profile associated with it gets populated in the dashboard.</p>
+				{% else %}
+				<p class="flow-text faq-answer" style="font-size: 13pt; margin:0 15px; text-align: justify;">Starting multiple ZAP Instances is disabled. So you can only work on one instance at a time.</p>
+				{% endif %}
+			</div>
+			<p class="flow-text" style="font-size: 13pt; margin:0 15px;margin-top:20px;text-align: justify;">
+                                If you still feel like you have questions unanswered, we'll be glad to help you out. Click the button below to send us an email:
+				<a  class="waves-effect waves-light mmt-blue btn" href="mailto:securityops@makemytrip.com&subject=[QUESTION] ">Send us an Email</a>
+                        </p>
+		</div>
+	</div>
+</ul>
+<div class="navbar-fixed">
+	<nav class="mmt-blue">
+		<div class="nav-wrapper">
+			<a href="#" class="brand-logo"><img style="margin:7px;" src='{% static "images/mmt_logo_webguard.png" %}' height=50 /><span class="flow-text" style="position: absolute;padding-left: 15px;font-size:20pt;">WebGuard<span></a>
+			<ul id="nav-mobile" class="right hide-on-med-and-down">
+				{% if instances %}
+				<li><a class="dropdown-button" href="#!" data-activates="dropdown1">ZAP: {{ instances.ip }}:{{ instances.port }} [{{ instances.name }}]<i class="material-icons right">arrow_drop_down</i></a></li>
+				<li><a href="#" id="host-mapping">Host Mapping</a></li>
+				<li><a href="#" data-activates="slide-out-utilities" id="utilities">Guide</a></li>
+				{% endif %}
+				<li><a href="#" data-activates="slide-out-help" id="help">Help</a></li>
+				<li><a>{{ username|upper }}</a></li>
+				<li><a id="logout">Logout</a></li>
+			</ul>
+		</div>
+	</nav>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if instances %}
+<div class="row" style="margin-bottom:0">
+	<div class="col s12">
+		<div class="card-panel">
+			<div class="row" style="margin-bottom:0">
+			        <div class="col s6">
+					<div class="row" style="margin-bottom:0">
+						<div class="col s6">
+							<p class="flow-text" style="font-size: 14pt;margin:0">
+							ZAP: {{ instances.ip }}:{{ instances.port }}
+							</p>
+						</div>
+						<div class="col s6">
+							<p class="flow-text" style="font-size: 14pt;margin:0">
+							Name: {{ instances.name }}
+							</p>
+						</div>
+					</div>
+				</div>
+			        <div class="col s6">
+					<div class="row center-align" style="margin-bottom:0">
+						{% if ZAP_MULTIPLE_ALLOWED and zap_instances|length < ZAP_MULTIPLE_MAX_COUNT %}
+						<div class="col s4">
+						{% else %}
+						<div class="col s6">
+						{% endif %}
+							<a href="http://{{ instances.ip }}:{{ instances.port }}/OTHER/core/other/rootcert/" class="waves-effect waves-light blue btn" style="margin-top:-10px;margin-bottom:-10px;width:190px;">SSL Certificate</a>
+						</div>
+						{% if ZAP_MULTIPLE_ALLOWED and zap_instances|length < ZAP_MULTIPLE_MAX_COUNT %}
+                                                <div class="col s4">
+                                                {% else %}
+                                                <div class="col s6">
+                                                {% endif %}
+							<a data-port="{{ instances.port }}" data-ip="{{ instances.ip }}" class="zap_stop waves-effect waves-light mmt-red btn" style="margin-top:-10px;margin-bottom:-10px;width:190px;">Stop ZAP</a>
+						</div>
+						{% if ZAP_MULTIPLE_ALLOWED and zap_instances|length < ZAP_MULTIPLE_MAX_COUNT %}
+						<div class="col s4">
+							<a id="zap_start" class="waves-effect waves-light green btn" style="margin-top:-10px;margin-bottom:-10px;width:190px;">Start ZAP</a>
+						</div>
+						{% endif %}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% else %}
+<div class="row">
+        <div class="col s12">
+                <div class="card-panel center-align">
+                        <div class="row" style="margin-bottom:0">
+				<div class="col s6">
+					<p class="flow-text" style="font-size: 14pt;margin:0">
+						Let's Start your first ZAP Instance
+					</p>
+				</div>
+				<div class="col s6">
+					<a id="zap_start" class="waves-effect waves-light green btn" style="margin-top:-10px;margin-bottom:-10px;width:190px;">Start ZAP</a>
+				</div>
+			</div>
+                </div>
+        </div>
+</div>
+{% endif %}
+{% if instances %}
+<div class="row" style="margin-bottom:0">
+	<div class="col s8">
+                <div class="card-panel" style="height:375px;">
+			<p class="flow-text center-align" style="font-size: 20pt;margin:10px;">Proxy Logs</p>
+			<div class="row">
+				<div class="col s4">
+					<select name="from[]" id="search" size="8" multiple="multiple" style="display:block; height:100%; border: 1px solid #f1f1f1;box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12), 0 3px 1px -2px rgba(0,0,0,0.2);overflow-y:auto;">
+					</select>
+				</div>
+
+				<div class="col s4">
+					<button type="button" style="width:100%;margin-top:47px;" id="search_rightAll" class="btn btn-block blue">Select All &gt;&gt;</button>
+					<button type="button" style="width:100%;margin-top:5px;" id="search_rightSelected" class="btn btn-block blue">Select &gt;</button>
+					<button type="button" style="width:100%;margin-top:5px;" id="search_leftSelected" class="btn btn-block blue">&lt; De-select</button>
+					<button type="button" style="width:100%;margin-top:5px;" id="search_leftAll" class="btn btn-block blue">&lt;&lt; De-select All</button>
+				</div>
+
+				<div class="col s4">
+					<select name="to[]" id="search_to" size="8" multiple="multiple" style="display:block; height:100%; border: 1px solid #f1f1f1;box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12), 0 3px 1px -2px rgba(0,0,0,0.2);overflow-y:auto;"></select>
+				</div>
+			</div>
+			<div class="row" style="margin:0">
+				<div class="col s12">
+					<div class="row" style="margin:0">
+						<div class="col s6" style="padding:0">
+							<a id="zap_get_logs" data-port="{{ instances.port }}" data-ip="{{ instances.ip }}" class="waves-effect waves-light btn mmt-blue">Get Logs</a>
+						</div>
+						<div class="col s6 right-align" style="padding:0">
+							<a id="zap_send_to_scanner" data-port="{{ instances.port }}" data-ip="{{ instances.ip }}" class="waves-effect waves-light btn mmt-blue">Start Scanning</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+        </div>
+	<div class="col s4">
+                <div class="card-panel" style="height:375px;">
+			<div class="row">
+				<p class="flow-text center-align" style="font-size: 20pt;margin:10px;">Single URL Scan</p>
+				<p class="flow-text" style="text-align:justify;font-size: 13pt;margin:10px;">This section can be used to scan a single URL quickly without having to set a proxy in your browser. This can also be used to re-test the vulnerability in a URL having GET parameters.</p>
+				<div class="row">
+					<div class="input-field col s12" style="margin-top:38px;">
+						<input id="single_url_to_scan" style="margin-bottom:0" type="text" class="validate" required>
+						<label for="single_url_to_scan">Enter URL to Scan</label>
+					</div>
+				</div>
+				<div class="row">
+					<div class="input-field col s12">
+						<a id="single-url-scan" data-port="{{ instances.port }}" data-ip="{{ instances.ip }}" class="btn waves-effect waves-light mmt-blue">Scan URL</a>
+					</div>
+				</div>
+			</div>
+		</div>
+        </div>
+</div>
+<div class="row" style="margin-bottom:0">
+        <div class="col s12">
+                <div class="card-panel">
+			<p class="flow-text center-align" style="font-size: 20pt;margin:10px;margin-bottom:25px;">Scans Status <span id="status-refresh"><i class="material-icons refresh-button tooltipped" data-position="right" data-delay="10" data-tooltip="Refresh Scans List" style="font-size:22pt;">loop</i></span></p>
+			<a id="zap_scans_list" data-port="{{ instances.port }}" data-ip="{{ instances.ip }}" style="display:none;" class="waves-effect waves-light btn orange">Get Status</a>
+			<div class="row" style="margin-bottom:0">
+				<div class="col s12" id="zap_scans_status">
+				</div>
+			</div>
+		</div>
+        </div>
+</div>
+<div id="modal2" class="modal modal-fixed-footer">
+	<div class="modal-content">
+		<h4>Hosts File</h4>
+		<div class="input-field col s12">
+			<textarea class="materialize-textarea" id="hosts-file">
+				Please wait fetching...
+			</textarea>
+		</div>
+	</div>
+	<div class="modal-footer">
+		<div class="left"><a id="hosts-save" class="waves-effect waves-green btn-flat" style="color:green">Update Hosts Mapping</a></div>
+		<a href="#!" class="modal-action modal-close waves-effect waves-red btn-flat" style="color:red">Close</a>
+	</div>
+</div>
+<div id="modal1" class="modal modal-fixed-footer">
+	<div class="modal-content">
+		<h4>Modal Header</h4>
+		<div id="vulnerabilities">
+
+		</div>
+	</div>
+	<div class="modal-footer">
+		<a href="#!" class="modal-action modal-close waves-effect waves-red btn-flat" style="color:red">Close</a>
+		<a href="#!" data-port="{{ instances.port }}" data-ip="{{ instances.ip }}" class="waves-effect waves-green btn-flat" id="report-save" style="color:green">Save as CSV</a>
+		<div style="width:40%;"class="left"><input style="margin-bottom:0;" data-scan-url="" id="report-email" placeholder="Enter Email ID" type="email" class="validate" required></div>
+		<div class="left"><a class="waves-effect waves-orange btn-flat" data-port="{{ instances.port }}" data-ip="{{ instances.ip }}" id="report-email-btn" style="color:orange">Send to Mail</a></div>
+	</div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript" src='{% static "js/multiselect.min.js" %}'></script>
+<script type="text/javascript" src='{% static "js/jQueryRotate.js" %}'></script>
+<script type="text/javascript">
+        $(function() {
+
+		$('#host-mapping').click(function() {
+			$('#hosts-file').val("Please wait fetching...");
+			$.get("{% url 'api:zap_hosts_list' %}", {ip: "{{ instances.ip }}", port: "{{ instances.port }}"}, function(output) {
+				if(output.status)
+				{
+					//alert(output.data)
+					$('#hosts-file').val(output.data);
+					$('#hosts-file').trigger('autoresize');
+				}
+				else
+				{
+					Materialize.toast("Something went wrong! Please refresh.", 4000);
+				}
+			});
+			$('#modal2').modal('open');
+
+			return false;
+		});
+
+		$('#hosts-save').click(function() {
+			var hostsdata = $('#hosts-file').val();
+			$.get("{% url 'api:zap_hosts_write' %}", {data: hostsdata, ip: "{{ instances.ip }}", port: "{{ instances.port }}"}, function(output) {
+				Materialize.toast(output.message, 4000);
+			});
+		});
+
+		$("#help").sideNav({
+			menuWidth: 600,
+			edge: 'right',
+			draggable: true
+		});	
+		$("#utilities").sideNav({
+			menuWidth: 500,
+			edge: 'right',
+			draggable: true
+		});	
+		$(".dropdown-button").dropdown();		
+		$(".dropdown-content .disabled").click(function() { return false; });
+
+		$("#report-save").click(function() {
+			var url = $("#report-email").attr("data-scan-url");
+                        var ip = $(this).attr("data-ip");
+                        var port = $(this).attr("data-port");
+
+			$.get("{% url 'api:zap_scan_report_save' %}", {url: url, ip: ip, port: port}, function(output) {
+                                $("body").append("<iframe src='" + output.file + "' style='display: none;' ></iframe>");
+                        });
+			return false;
+		});
+	
+		$("#report-email-btn").click(function() {
+			var email = $("#report-email").val();
+			var url = $("#report-email").attr("data-scan-url");
+			var ip = $(this).attr("data-ip");
+                        var port = $(this).attr("data-port");
+			var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+
+			check_emails = email.split(",");
+			for(var i in check_emails)
+			{
+				if(!regex.test(check_emails[i]))
+				{
+					Materialize.toast('Please enter a valid Email ID', 4000);
+					return false;
+				}
+			}
+ 
+			if(email == "")
+			{
+				Materialize.toast('Please enter a valid Email ID', 4000);
+				return false;
+			}
+			if(url == "")
+			{
+				Materialize.toast('Something went wrong! Please refresh!', 4000);
+				return false;
+			}
+			$.get("{% url 'api:zap_scan_report_email' %}", {url: url, email: email, ip: ip, port: port}, function(output) {
+				Materialize.toast(output.message, 4000);
+			});
+			return false;
+		});
+	
+		var all_done = true;
+		var force_refresh = false;
+
+		$('#single-url-scan').click(function() {
+			var url = $('#single_url_to_scan').val();
+			var ip = $(this).attr("data-ip");
+                        var port = $(this).attr("data-port");
+
+			Materialize.toast('Please wait. Testing the URL', 2000)
+			all_done = false;
+			force_refresh = true;
+			
+			$.get("{% url 'api:zap_scan_url' %}", {ip: ip, port: port, url: url}, function(output) {
+                        	Materialize.toast('Scan Started : ' + output.scanId, 2000)
+                        });
+			
+			return false;
+		});
+
+		text_truncate = function(str, length, ending) {
+			if (length == null) {
+				length = 100;
+			}
+			if (ending == null) {
+				ending = '...';
+			}
+			if (str.length > length) {
+				return str.substring(0, length - ending.length) + ending;
+			} else {
+				return str;
+			}
+		};
+
+		$('#zap_scans_list').click(function() {
+			var ip = $(this).attr("data-ip");
+                        var port = $(this).attr("data-port");
+			var colors = ['green', 'blue', 'teal'];
+			$.get("{% url 'api:zap_scan_list' %}", {ip: ip, port: port}, function(output) {
+				if(output.length == 0)
+				{
+					$('#zap_scans_status').html("<div class='center-align flow-text' style='font-size:16pt;'>No scans started yet</div>");
+				}
+				else
+				{
+					var completed = true;
+					var html = "";
+					var count = 3;
+					var closed = true;
+					for(var i in output) {
+						if(i % count == 0)
+						{
+							html += '<div class="row">';
+							closed = false;
+						}
+						if(output[i].state != "FINISHED")
+						{
+							completed = false;
+						}
+						html += '<div class="col s4"><span class="unmask_url" data-complete-url="' + output[i].url + '">' + text_truncate(output[i].url, 50) + '</span><div class="progress"><div class="determinate ' + colors[i % colors.length] + '" style="width: ' + output[i].progress + '%"></div></div>';
+						var attr = "disabled";
+						if(output[i].state == "FINISHED")
+							attr = "";
+						html += '<a data-port="{{ instances.port }}" data-ip="{{ instances.ip }}" data-scan-id="' + output[i].id + '" data-scan-url="' + output[i].url + '" class="zap_scan_report waves-effect waves-light btn ' + colors[i % colors.length] + '" ' + attr + '>Get Report</a>';
+						if(output[i].state != "FINISHED")
+							html += '&nbsp;&nbsp;<a data-port="{{ instances.port }}" data-ip="{{ instances.ip }}" data-scan-id="' + output[i].id + '" class="zap_scan_stop waves-effect waves-light btn mmt-red">Stop this Scan</a>';
+						html += '</div>';
+						if((i + 1) % count == 0)
+						{
+							closed = true;
+							html += '</div>';
+						}
+					}
+					if(!closed)
+					{
+						html += '</div>';
+						closed = true;
+					}
+					all_done = completed;
+					$('#zap_scans_status').html(html);
+				}
+			});	
+			return false;
+		});
+		$('#zap_scans_list').click();
+		
+		var updateStatus = setInterval(function() {
+			console.log("Updating Scans Status - " + all_done + " - " + force_refresh);
+			if (all_done)
+			{
+				if(force_refresh)
+				{
+					$('#zap_scans_list').click();
+					force_refresh = false;
+				}
+				return false;
+			}
+			$('#zap_scans_list').click();
+		}, 2000);
+
+		$('body').on('click', '.refresh-button', function() {
+			$(this).rotate({
+				angle: 0,
+				animateTo:-180
+			});	
+			$('#zap_scans_list').click();
+		});
+
+		$('body').on('click', '.zap_scan_stop', function() {
+			var ip = $(this).attr("data-ip");
+                        var port = $(this).attr("data-port");
+			var scanid = $(this).attr("data-scan-id");
+			$.get("{% url 'api:zap_scan_stop' %}", {ip: ip, port: port, scanid: scanid}, function(output) {
+				if(output.status)
+					Materialize.toast('Scan Stopped', 2000);
+				else
+					Materialize.toast('Invalid Scan ID', 2000);
+			});
+		});
+
+		$('body').on('mouseenter', '.unmask_url', function() {
+			var url = $(this).attr("data-complete-url");
+			$(this).html(url);
+		});
+		$('body').on('mouseleave', '.unmask_url', function() {
+			var url = $(this).attr("data-complete-url");
+			$(this).html(text_truncate(url, 50));
+		});
+
+		$('.modal').modal();
+		$('body').on('click', '.zap_scan_report', function() {
+			var ip = $(this).attr("data-ip");
+                        var port = $(this).attr("data-port");
+			var scanId = $(this).attr("data-scan-id");
+			var url = $(this).attr("data-scan-url");
+			$.get("{% url 'api:zap_scan_report' %}", {ip: ip, port: port, url: url}, function(output) {
+				var html = '<ul class="collapsible" data-collapsible="accordion">';
+				vulns = {High: {}, Medium: {}, Low: {}}
+				for(var i in output)
+				{
+					if(!(output[i].name in vulns[output[i].confidence]))
+					{
+						vulns[output[i].confidence][output[i].name] = {evidence: []};
+					}
+					vulns[output[i].confidence][output[i].name]['solution'] = output[i].solution;
+					vulns[output[i].confidence][output[i].name]['description'] = output[i].description;
+					vulns[output[i].confidence][output[i].name]['reference'] = output[i].reference;
+					vulns[output[i].confidence][output[i].name]['evidence'].push({evidence: output[i].evidence, param: output[i].param});
+				}
+				var crit = ['High', 'Medium', 'Low'];
+				for(var i in crit)
+				{
+					var icon = ""; 
+					if(crit[i] == 'High')
+						icon = '<i class="material-icons" style="color:red">report_problem</i>'; 
+					if(crit[i] == 'Medium')
+                                                icon = '<i class="material-icons" style="color:orange">error</i>';
+					if(crit[i] == 'Low')
+                                                icon = '<i class="material-icons" style="color:green">info</i>';
+
+					vuln = vulns[crit[i]];
+
+					for(var j in vuln)
+					{
+						var evi = true;
+						html += '<li>';
+						html += '<div class="collapsible-header">' + icon + j + '</div>';
+						html += '<div class="collapsible-body">';
+						html += '<div style="text-align:justify"><strong>Description</strong>: ' + vuln[j]['description'] + '</div>';
+						html += '<div style="text-align:justify"><strong>Solution</strong>: ' + vuln[j]['solution'] + '</div>';
+						if(vuln[j]['reference'] != "")
+							html += '<div><strong>Reference</strong>: ' + vuln[j]['reference'] + '</div>';
+						for(var k in vuln[j]['evidence'])
+						{
+							if(vuln[j]['evidence'][k]['param'] != "")
+							{
+								if(evi)
+								{
+									html += '<br><strong>Affected Parameters</strong>';
+									evi = false;
+								}
+								html += '<div><strong>Parameter</strong>: ' + vuln[j]['evidence'][k]['param'] + '</div>';
+							}
+						}
+						html += '</div>';
+						html += '</li>';
+					}
+				}
+				html += '</div>';
+				$('.modal-content h4').html("Vulnerability Report - " + url);
+				$('.modal-content div#vulnerabilities').html(html);
+				$('#report-email').attr("data-scan-url", url);
+				$('.collapsible').collapsible();
+				$('#modal1').modal('open');
+			});
+		});
+	
+		$("#zap_send_to_scanner").click(function() {
+			var ip = $(this).attr("data-ip");
+                        var port = $(this).attr("data-port");
+			all_done = false;
+			force_refresh = true;
+			$("#search_to option").each(function()
+			{
+				var url = $(this).val();
+				$.get("{% url 'api:zap_scan_start' %}", {ip: ip, port: port, url: url}, function(output) {
+					Materialize.toast('Scan Started : ' + output.scanId, 2000)
+				});
+			});
+			return false;
+		});
+		
+		$('#zap_get_logs').click(function() {
+			var ip = $(this).attr("data-ip");
+                        var port = $(this).attr("data-port");
+			var url = "{% url 'api:zap_get_logs' ip=12345 port=67890 %}".replace(/12345/, ip).replace(/67890/, port);
+			$.get(url, function(output) {
+				var html = "";
+				for(var i in output)
+				{
+					html += "<option value='" + output[i] + "'>" + output[i] + "</option>";
+				}
+				$('#search').html(html);
+			});
+			return false;
+		});
+		$('#zap_get_logs').click();
+
+		$('#search').multiselect({
+			search: {
+		            left: '<input type="text" name="q" class="form-control" style="margin:0"  placeholder="Filter this column..." />',
+		            right: '<input type="text" name="q" class="form-control" style="margin:0" placeholder="Filter this column..." />',
+		        },
+		        fireSearch: function(value) {
+		            return value.length >= 2;
+		        },
+			keepRenderingSort: true
+		});
+
+                $('form').submit(function() {
+                        return false;
+                });
+
+		$('#logout').click(function() {
+			$.get("{% url 'api:logout' %}", function() {
+				window.location.replace("{% url 'web:login' %}");
+			});
+			return false;
+		});
+
+		$('.zap_stop').click(function() {
+			var ip = $(this).attr("data-ip");
+			var port = $(this).attr("data-port");
+			var url = "{% url 'api:zap_stop' ip=12345 port=67890 %}".replace(/12345/, ip).replace(/67890/, port);
+			$.post(url, function(output) {
+				location.reload();
+			});
+		});
+
+		$('#zap_start').click(function() {
+			$(this).attr("disabled", "disabled");
+			$(this).html("Starting ZAP...");
+			$.post("{% url 'api:zap_start' %}", {}, function(output) {
+				location.reload();
+			});
+		});
+        });
+</script>
+{% endblock %}
+
+
+
+
+
+
