@@ -455,27 +455,30 @@ along with WebGuard.  If not, see <http://www.gnu.org/licenses/>.
 					var count = 3;
 					var closed = true;
 					for(var i in output) {
-						if(i % count == 0)
+						if(!(output[i].url == "ERROR"))
 						{
-							html += '<div class="row">';
-							closed = false;
-						}
-						if(output[i].state != "FINISHED")
-						{
-							completed = false;
-						}
-						html += '<div class="col s4"><span class="unmask_url" data-complete-url="' + output[i].url + '">' + text_truncate(output[i].url, 50) + '</span><div class="progress"><div class="determinate ' + colors[i % colors.length] + '" style="width: ' + output[i].progress + '%"></div></div>';
-						var attr = "disabled";
-						if(output[i].state == "FINISHED")
-							attr = "";
-						html += '<a data-port="{{ instances.port }}" data-ip="{{ instances.ip }}" data-scan-id="' + output[i].id + '" data-scan-url="' + output[i].url + '" class="zap_scan_report waves-effect waves-light btn ' + colors[i % colors.length] + '" ' + attr + '>Get Report</a>';
-						if(output[i].state != "FINISHED")
-							html += '&nbsp;&nbsp;<a data-port="{{ instances.port }}" data-ip="{{ instances.ip }}" data-scan-id="' + output[i].id + '" class="zap_scan_stop waves-effect waves-light btn mmt-red">Stop this Scan</a>';
-						html += '</div>';
-						if((i + 1) % count == 0)
-						{
-							closed = true;
+							if(i % count == 0)
+							{
+								html += '<div class="row">';
+								closed = false;
+							}
+							if(output[i].state != "FINISHED")
+							{
+								completed = false;
+							}
+							html += '<div class="col s4"><span class="unmask_url" data-complete-url="' + output[i].url + '">' + text_truncate(output[i].url, 50) + '</span><div class="progress"><div class="determinate ' + colors[i % colors.length] + '" style="width: ' + output[i].progress + '%"></div></div>';
+							var attr = "disabled";
+							if(output[i].state == "FINISHED")
+								attr = "";
+							html += '<a data-port="{{ instances.port }}" data-ip="{{ instances.ip }}" data-scan-id="' + output[i].id + '" data-scan-url="' + output[i].url + '" class="zap_scan_report waves-effect waves-light btn ' + colors[i % colors.length] + '" ' + attr + '>Get Report</a>';
+							if(output[i].state != "FINISHED")
+								html += '&nbsp;&nbsp;<a data-port="{{ instances.port }}" data-ip="{{ instances.ip }}" data-scan-id="' + output[i].id + '" class="zap_scan_stop waves-effect waves-light btn mmt-red">Stop this Scan</a>';
 							html += '</div>';
+							if((i + 1) % count == 0)
+							{
+								closed = true;
+								html += '</div>';
+							}
 						}
 					}
 					if(!closed)
@@ -610,7 +613,7 @@ along with WebGuard.  If not, see <http://www.gnu.org/licenses/>.
 			$("#search_to option").each(function()
 			{
 				var url = $(this).val();
-				$.get("{% url 'api:zap_scan_start' %}", {ip: ip, port: port, url: url}, function(output) {
+				$.get("{% url 'api:zap_scan_start' %}", {ip: ip, port: port, url: $(this).val(), method: $(this).attr('data-zap-method'), data: $(this).attr('data-zap-body')}, function(output) {
 					Materialize.toast('Scan Started : ' + output.scanId, 2000)
 				});
 			});
@@ -625,7 +628,7 @@ along with WebGuard.  If not, see <http://www.gnu.org/licenses/>.
 				var html = "";
 				for(var i in output)
 				{
-					html += "<option value='" + output[i] + "'>" + output[i] + "</option>";
+					html += "<option data-zap-body='" + output[i]['data'] + "' data-zap-id='" + output[i]['id'] + "' data-zap-method='" + output[i]['method'] + "' value='" + i + "'>" + i + "</option>";
 				}
 				$('#search').html(html);
 			});

@@ -136,10 +136,19 @@ def zap_get_logs(request, ip, port):
 			request.session['login_username']
 			zap = ZAPv2(proxies={'http': 'http://%s:%s' % (ip, port), 'https': 'http://%s:%s' % (ip, port)})
 			zap_urls = zap.search.urls_by_url_regex(".*")
-			data = []
+                        zap_data = zap.search.messages_by_url_regex(".*")
+			data = {}
 			for url in zap_urls:
-				data.append(url['url'])
-			data = list(set(data))
+                                if not url['url'] in data:
+                                    data[url['url']] = {}
+                                data[url['url']]['id'] = url['id']
+                                data[url['url']]['method'] = url['method']
+                                if url['method'] == "POST":
+                                        for z_data in zap_data:
+                                                if z_data['id'] == url['id']:
+                                                        data[url['url']]['data'] = z_data['requestBody']
+                                else:
+                                        data[url['url']]['data'] = ""
 			return JsonResponse(data)
 		else:
 			return JsonResponse({"message": "Access Denied"}, 401)
@@ -246,7 +255,7 @@ def zap_scan_url(request):
                 port = request.GET.get("port", None)
 
 		if url and ip and port:
-			status, scanId = zap_scan(request, ip, port, url, True)
+			status, scanId = zap_scan(request, ip, port, url, "GET", "", True)
 			if status:
                                 d = {"scanId": scanId, "message": "Scanning Started"}
                                 return JsonResponse(d)
@@ -255,7 +264,7 @@ def zap_scan_url(request):
 		else:
 			return JsonResponse({"message": "Invalid parameters recieved."}, 400)
 
-def zap_scan(request, ip, port, url, add_to_scan_tree = False):
+def zap_scan(request, ip, port, url, method, data, add_to_scan_tree = False):
 	if add_to_scan_tree:
 		proxies={'http': 'http://%s:%s' % (ip, port), 'https': 'http://%s:%s' % (ip, port)}
 		r = requests.get(url, proxies = proxies, verify = False)
@@ -265,7 +274,10 @@ def zap_scan(request, ip, port, url, add_to_scan_tree = False):
 	zap = ZAPv2(proxies={'http': 'http://%s:%s' % (ip, port), 'https': 'http://%s:%s' % (ip, port)})
 	try:
 		instance = ZAPInstance.objects.get(server__ip = ip, port = port, enabled = True)
-		scanId = zap.ascan.scan(url, apikey = instance.api_key)
+                if method == "POST":
+                        scanId = zap.ascan.scan(url, apikey = instance.api_key, method = method, postdata = data)
+                else:
+        		scanId = zap.ascan.scan(url, apikey = instance.api_key)
 		if not "scans" in request.session:
 			request.session['scans'] = {}
 
@@ -287,9 +299,11 @@ def zap_scan_start(request):
 		url = request.GET.get("url", None)
 		ip = request.GET.get("ip", None)
 		port = request.GET.get("port", None)
+                method = request.GET.get("method", None)
+                data = request.GET.get("data", None)
 
 		if url and ip and port:
-			status, scanId = zap_scan(request, ip, port, url)
+			status, scanId = zap_scan(request, ip, port, url, method, data)
 			if status:
 				d = {"scanId": scanId, "message": "Scanning Started"}
 				return JsonResponse(d)
@@ -333,12 +347,15 @@ def zap_scan_list(request):
 					instance = ZAPInstance.objects.get(server__ip = ip, port = port, enabled = True)
 					scans = zap.ascan.scans
 					for i, scan in enumerate(scans):
-						zapscan = ZAPScan.objects.get(instance = instance, scanId = scan['id'], user = request.session['login_username'])
-						url = zapscan.url
-						scan['url'] = url
-						scans[i] = scan
+                                                try:
+                                                        zapscan = ZAPScan.objects.get(instance = instance, scanId = scan['id'], user = request.session['login_username'])
+                                                        url = zapscan.url
+                                                except:
+                                                        url = "ERROR"
+                                                scan['url'] = url
+                                                scans[i] = scan
 					return JsonResponse(scans)
-				except:
+				except Exception as e:
 					return JsonResponse({"message": "No such instance found. Please check."}, 400)
 			else:
 				return JsonResponse({"message": "Invalid parameters recieved."}, 400)
