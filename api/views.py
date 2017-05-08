@@ -31,6 +31,7 @@ from utils import login_ldap, client, login_check
 
 from zapv2 import ZAPv2
 from haikunator import Haikunator
+from collections import OrderedDict
 
 import json, socket, uuid, requests, time, csv, os
 
@@ -136,7 +137,8 @@ def zap_get_logs(request, ip, port):
 			request.session['login_username']
 			zap = ZAPv2(proxies={'http': 'http://%s:%s' % (ip, port), 'https': 'http://%s:%s' % (ip, port)})
 			zap_urls = zap.search.urls_by_url_regex(".*")
-                        zap_data = zap.search.messages_by_url_regex(".*")
+                        zap_o_data = requests.get('http://%s:%s/JSON/search/view/messagesByUrlRegex/?zapapiformat=JSON&regex=.*&baseurl=&start=&count=' % (ip, port))
+                        zap_o_data = json.loads(zap_o_data.content, object_pairs_hook=OrderedDict)['messagesByUrlRegex']
 			data = {}
 			for url in zap_urls:
                                 if not url['url'] in data:
@@ -144,9 +146,12 @@ def zap_get_logs(request, ip, port):
                                 data[url['url']]['id'] = url['id']
                                 data[url['url']]['method'] = url['method']
                                 if url['method'] == "POST":
-                                        for z_data in zap_data:
+                                        for z_data in zap_o_data:
                                                 if z_data['id'] == url['id']:
-                                                        data[url['url']]['data'] = z_data['requestBody']
+                                                        if isinstance(z_data['requestBody'], basestring):
+                                                                data[url['url']]['data'] = z_data['requestBody']
+                                                        else:
+                                                                data[url['url']]['data'] = "%s" % json.dumps(z_data['requestBody'])
                                 else:
                                         data[url['url']]['data'] = ""
 			return JsonResponse(data)
@@ -308,7 +313,12 @@ def zap_scan_start(request):
 				d = {"scanId": scanId, "message": "Scanning Started"}
 				return JsonResponse(d)
 			else:
-				return JsonResponse({"message": "No such instance found. Please check."}, 400)
+                                status, scanId = zap_scan(request, ip, port, url, method, "'%s'" % data)
+                                if status:
+                                        d = {"scanId": scanId, "message": "Scanning Started"}
+                                        return JsonResponse(d)
+                                else:
+        				return JsonResponse({"message": "No such instance found. Please check."}, 400)
 		else:
 			return JsonResponse({"message": "Invalid parameters recieved."}, 400)
 

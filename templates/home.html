@@ -613,7 +613,8 @@ along with WebGuard.  If not, see <http://www.gnu.org/licenses/>.
 			$("#search_to option").each(function()
 			{
 				var url = $(this).val();
-				$.get("{% url 'api:zap_scan_start' %}", {ip: ip, port: port, url: $(this).val(), method: $(this).attr('data-zap-method'), data: $(this).attr('data-zap-body')}, function(output) {
+				var body = $(this).attr('data-zap-body');
+				$.get("{% url 'api:zap_scan_start' %}", {ip: ip, port: port, url: $(this).val(), method: $(this).attr('data-zap-method'), data: body}, function(output) {
 					Materialize.toast('Scan Started : ' + output.scanId, 2000)
 				});
 			});

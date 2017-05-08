@@ -11,6 +11,10 @@ This repository hosts the webGuard Web Server component. For detailed documentat
 Changelog
 ---------
 
+### v1.1.1
+
+ * Fix JSON Body handling for POST request scans
+
 ### v1.1
 
  * Support for scanning POST Requests
